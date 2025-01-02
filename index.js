@@ -3,21 +3,13 @@ const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('cloudinary').v2;
 const path = require('path');
-const cors = require('cors'); // Import the CORS middleware
 require('dotenv').config();
+
 
 const app = express();
 
 // Serve static files from the "public" directory
 app.use(express.static(path.join(__dirname, 'public')));
-
-// Configure CORS
-const allowedOrigins = ['https://getimageurl.onrender.com']; // Replace with your frontend's URL
-app.use(cors({
-    origin: allowedOrigins,
-    methods: ['GET', 'POST'],
-    credentials: true,
-}));
 
 // Configure Cloudinary
 cloudinary.config({
@@ -25,6 +17,7 @@ cloudinary.config({
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
 
 // Configure Multer to use Cloudinary
 const storage = new CloudinaryStorage({
@@ -51,6 +44,7 @@ app.post('/upload', upload.single('file'), (req, res) => {
         res.status(500).json({ error: 'An error occurred during file upload.' });
     }
 });
+
 
 // Start the server
 const PORT = process.env.PORT || 3000;
