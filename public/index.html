@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload to Cloudinary</title>
+</head>
+
+<body>
+    <h1>Upload Image/Video to Cloudinary</h1>
+    <form id="uploadForm">
+        <label for="fileInput">Choose a file to upload (image or video):</label>
+        <input type="file" id="fileInput" name="file" accept="image/*,video/*" required title="File input" />
+        <button type="submit">Upload</button>
+    </form>
+
+    <div id="result">
+        <h2>Uploaded File URL:</h2>
+        <p id="fileUrl"></p>
+        <button id="copyButton" style="display:none;">Copy Link</button>
+        <img id="previewImage" src="" alt="Preview" style="display:none; max-width:300px;" />
+        <video id="previewVideo" controls style="display:none; max-width:300px;">
+            <source id="videoSource" src="" type="video/mp4">
+        </video>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Please select a file!');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('http://localhost:3000/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    throw new Error('File upload failed');
+                }
+
+                const data = await response.json();
+                const fileUrl = data.fileUrl;
+
+                // Display the uploaded file's URL
+                const fileUrlElement = document.getElementById('fileUrl');
+                fileUrlElement.textContent = fileUrl;
+
+                // Show the "Copy" button
+                const copyButton = document.getElementById('copyButton');
+                copyButton.style.display = 'inline-block';
+
+                // Add event listener to copy button
+                copyButton.addEventListener('click', () => {
+                    navigator.clipboard.writeText(fileUrl).then(() => {
+                        alert('File URL copied to clipboard!');
+                    }).catch(err => {
+                        console.error('Error copying text: ', err);
+                    });
+                });
+
+                // Display a preview of the uploaded file
+                if (file.type.startsWith('image/')) {
+                    document.getElementById('previewImage').src = fileUrl;
+                    document.getElementById('previewImage').style.display = 'block';
+                    document.getElementById('previewVideo').style.display = 'none';
+                } else if (file.type.startsWith('video/')) {
+                    document.getElementById('videoSource').src = fileUrl;
+                    document.getElementById('previewVideo').style.display = 'block';
+                    document.getElementById('previewImage').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error uploading file');
+            }
+        });
+    </script>
+</body>
+
+</html>
